@@ -1,0 +1,14 @@
+
+[entryPoints]
+    [entryPoints.http]
+    address = ":8080"
+
+    [entryPoints.private]
+    address = ":8081"
+
+[api]
+  entryPoint = "private"
+
+[file]
+  filename = "/etc/traefik/routes.toml"
+  watch = true

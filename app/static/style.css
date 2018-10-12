@@ -1,0 +1,12 @@
+.table_header {
+    display: flex;
+    justify-content: space-between;
+}
+
+.table_header span {
+    font-size: x-large;
+}
+
+.frontends {
+    margin-top: 40px;
+}
