@@ -141,7 +141,7 @@
                     {% for fnd in frontends %}
                     <tr data-id="{{ fnd.id }}" {% if fnd.is_private %}class="frontends__table__private hide"{% endif %}>
                         <td>{{ fnd.name }}</td>
-                        <td><a class="frontends__table__link" href="#">{{ fnd.routing_path }}</a></td>
+                        <td><a href="http://{{nodes[0].address}}:{{nodes[0].routing_port}}{{fnd.routing_path}}">{{ fnd.routing_path }}</a></td>
                         <td>{{ fnd.node_id }}</td>
                         <td>{{ fnd.backend_port }}</td>
                         <td>

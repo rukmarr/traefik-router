@@ -13,8 +13,6 @@ $(function () {
 
 function initFrontends() {
 
-  let entrance_port = $('.nodes__table__routing_port').get(0).innerText
-
   $('.new_frontend__submit').click(ev => {
     let node_id = +$('.new_frontend__node').val();
 
@@ -62,15 +60,6 @@ function initFrontends() {
       $('.frontends__table__private').addClass('hide');
     }
   });
-
-  $('.frontends__table').on('click', '.frontends__table__link', ev => {
-    let path = $(ev.target).text()
-
-    let url = `http://${window.location.hostname}:${entrance_port}${path}`
-    window.location = url
-  });
-
-
 }
 
 

@@ -74,13 +74,8 @@ class NodeView():
             node.remove_child(self)
 
     def recompute_routes(self):
-        #print(self.id, self.name)
-
-        old_routes = self.routes.copy()
-        print('Recomputing routes for #{0}\nOld routes: {1}'.format(self.id, old_routes))
 
         self.routes = {}
-
         for node in self.children:
 
             for endpoint in node.endpoints:
@@ -116,32 +111,22 @@ class NodeView():
                         'transit': True
                     }
 
-        return self.routes != old_routes
-
-    def update_parents_routes(self, forced=False):
+    def update_parents_routes(self):
         queue = self.parents[:]
-
-        print('UPDATING PARENTS FROM #{0}!'.format(self.id))
-        
         for node in queue:
 
-            was_change = node.recompute_routes()
-            if was_change or forced:
-                for parent in node.parents:
-                    # check if current node is the last child in the queue
-                    if all(map(lambda n: n not in queue or queue.index(n) <= queue.index(node), 
-                        parent.children)):
-                        queue.append(parent)
-                node.send_config()
+            node.recompute_routes()
+            for parent in node.parents:
+                # check if current node is the last child in the queue
+                if all(map(lambda n: n not in queue or queue.index(n) <= queue.index(node), 
+                    parent.children)):
+                    queue.append(parent)
+            node.send_config()
 
     def update_upwards(self):
-        was_change = self.recompute_routes()
-        if was_change:
-
-            print('UPDATING UPWARDS FROM #{0}!'.format(self.id))
-
-            self.send_config()        
-            self.update_parents_routes()
+        self.recompute_routes()
+        self.send_config()        
+        self.update_parents_routes()
 
     def send_config(self):
         backends = {}
@@ -150,18 +135,13 @@ class NodeView():
         if self.id == 1:
             return self.send_root_config()
 
-        #print(json.dumps(self.routes, indent=2))
-        print('SENDING CONFIG FOR #{0}!'.format(self.id))
-
         for i, (routing_path, route) in enumerate(self.routes.items()):
-
-            #print('Route#{0}\n'.format(i))
 
             backend = {
                 'loadBalancer': {'method': 'wrr'}
             }
-            #NOT GUD
-            if route['health_check'] and type(route['health_check']) == str:
+            
+            if route['health_check'] and route['transit']:
                 backend['health_check'] = {
                     'path': route['health_check'],
                     'interval': "10s"
@@ -181,29 +161,30 @@ class NodeView():
                 'priority': 20,
             }
 
-
             if route['transit']:
                 frontend['routes'] = {'match': {'rule': 'PathPrefix:' + routing_path}}
             else:
                 frontend['routes'] = {'match': {'rule': 'PathPrefixStrip:' + routing_path}}
+
+            # no redirect due to websockets quirks
+            if not route['is_private']:
+                cookie_frontend = {
+                    'entryPoints': ['http'],
+                    'backend': 'backend{0}'.format(i),
+                    'priority': 10,
+                    'routes' : {'match': {'rule': 'HeadersRegexp: Cookie, routing='+routing_path}},
+                }
+                frontends['cookie{0}'.format(i)] = cookie_frontend
 
             frontends['frontend{0}'.format(i)] = frontend
 
         toml_str = tomlkit.dumps({'backends': backends, 'frontends': frontends})
 
         config_url = 'http://localhost:{0}/config_{1}/config'.format(root_config_port, self.id)
-        print('Sending config to', config_url)
         try:
             r = requests.put(config_url, data=toml_str)
         except:
             return 500
-
-        print(r)
-
-        #toml_file = open('./configs/routes{0}.toml'.format(self.id), 'w')
-        #toml_file.write(toml_str)
-
-        #print(r)
 
         return r.status_code
 
@@ -211,18 +192,13 @@ class NodeView():
         backends = {}
         frontends = {}
 
-        #print(json.dumps(self.routes, indent=2))
-        print('Sending root config!'.format(self.id))
-
         for i, (routing_path, route) in enumerate(self.routes.items()):
-
-            #print('Route#{0}\n'.format(i))
 
             backend = {
                 'loadBalancer': {'method': 'wrr'}
             }
-            #NOT GUD
-            if route['health_check'] and type(route['health_check']) == str:
+
+            if route['health_check'] and route['transit'] == str:
                 backend['health_check'] = {
                     'path': route['health_check'],
                     'interval': "10s"
@@ -236,8 +212,6 @@ class NodeView():
 
             backends['backend{0}'.format(i)] = backend
 
-
-            # FRONTENDS
             main_frontend =  {
                 'backend': 'backend{0}'.format(i),
                 'priority': 20,
@@ -254,24 +228,23 @@ class NodeView():
                     'Set-Cookie': 'routing={0}; domain={1}; path=/'.format(routing_path, root_address)
                 }}
 
+                # no redirect due to websockets quirks
                 cookie_frontend = {
                     'entryPoints': ['http',],
                     'backend': 'backend{0}'.format(i),
                     'priority': 10,
-                    'routes' : {'match': {'rule': 'HeadersRegexp: Cookie, routing='+routing_path}},
-                    'redirect': {  # undocumented feature, works just like entrypoint url-rewrite
-                        'regex': "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?", # based on https://tools.ietf.org/html/rfc3986#appendix-B
-                        'replacement': "$1$3" + routing_path + "$5$6"
-                    }
+                    'routes' : {'match': {'rule': 'HeadersRegexp: Cookie, routing='+routing_path}}
                 }
 
+                # redirect - undocumented feature, works just like entrypoint's, with url-rewrite
+                # regex from https://tools.ietf.org/html/rfc3986#appendix-B
                 redirect_frontend = {
                     'entryPoints':  ['http',],
                     'backend': 'backend{0}'.format(i),
                     'priority': 15,
                     'routes' : {'match': {'rule': 'HeadersRegexp: Referer, ' + routing_path}},
-                    'redirect': {  # undocumented feature, works just like entrypoint url-rewrite
-                        'regex': "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?", # based on https://tools.ietf.org/html/rfc3986#appendix-B
+                    'redirect': {  
+                        'regex': "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?",
                         'replacement': "$1$3" + routing_path + "$5$6"
                     }
                 }
