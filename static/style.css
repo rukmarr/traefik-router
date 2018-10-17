@@ -10,3 +10,7 @@
 .frontends {
     margin-top: 40px;
 }
+
+.hide {
+    display: none;
+}

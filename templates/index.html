@@ -42,7 +42,7 @@
                         <td>{{ node.id }}</td>
                         <td>{{ node.name }}</td>
                         <td>{{ node.address }}</td>
-                        <td>{{ node.routing_port }}</td>
+                        <td class="nodes__table__routing_port">{{ node.routing_port }}</td>
                         <td>{{ node.config_port }}</td>
                         <td>
                             {% for parent in node.parents %}
@@ -154,15 +154,18 @@
         <div class="col-md-10 col-md-push-1">
             <div class="table_header">
                 <span>Связанные адреса:</span>
-                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#frontend_creation_dialog">Создать</button>
+                <div>
+                    <button type="button" class="btn frontends__show_all btn-default"">Показать все</button>
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#frontend_creation_dialog">Создать</button>
+                </div>
             </div>
             <table class="table table-hover frontends__table">
                 <thead>
                     <tr>
+                        <th>Имя</th>
                         <th>Путь фронтенда</th>
                         <th>Номер узла</th>
                         <th>Порт</th>
-                        <th>Путь бэкенда</th>
                         <th>Пинг доступен</th>
                         <th>Открыт наружу</th>
                         <th></th>
@@ -171,11 +174,11 @@
 
                 <tbody>
                     {% for fnd in frontends %}
-                    <tr data-id="{{ fnd.id }}">
-                        <td>{{ fnd.routing_path }}</td>
+                    <tr data-id="{{ fnd.id }}" {% if fnd.is_private %}class="frontends__table__private hide"{% endif %}>
+                        <td>{{ fnd.name }}</td>
+                        <td><a class="frontends__table__link" href="#">{{ fnd.routing_path }}</a></td>
                         <td>{{ fnd.node_id }}</td>
                         <td>{{ fnd.backend_port }}</td>
-                        <td>{{ fnd.backend_path }}</td>
                         <td>
                             {% if fnd.check_ping %}
                                 <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
@@ -209,6 +212,11 @@
               <div class="modal-body">
                 <form>
                   <div class="form-group">
+                    <label for="fndName">Name</label>
+                    <input type="text" class="form-control new_frontend__name" id="fndName">
+                  </div>
+
+                  <div class="form-group">
                     <label for="fndNode">Node</label>
                     <select id="fndNode" class="form-control new_frontend__node">
                       {% for node in nodes %}
@@ -218,16 +226,6 @@
                       {% endfor %}
                     </select>
                   </div>
-
-                  <div class="form-group">
-                    <label for="fndRP">Routing path</label>
-                    <input type="text" class="form-control new_frontend__routing_path" id="fndRP">
-                  </div>
-                  
-                  <div class="form-group">
-                    <label for="fndBPath">Backend path</label>
-                    <input type="text" class="form-control new_frontend__backend_path" id="fndBPath">
-                  </div>
                   
                   <div class="form-group">
                     <label for="fndBPort">Backend port</label>
@@ -236,7 +234,7 @@
 
                   <div class="checkbox">
                     <label>
-                      <input class="new_frontend__check_ping" type="checkbox"> Check ping
+                      <input class="new_frontend__check_ping" type="checkbox" checked> Check ping
                     </label>
                   </div>
 

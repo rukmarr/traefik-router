@@ -2,6 +2,8 @@ from router_models import Node, Frontend, Edge, db
 from router_utils import load_nodes_view, check_json_template, find_by_id, check_for_cycles
 
 import json
+from hashids import Hashids
+hashids = Hashids(min_length=8)
 
 from flask import request, render_template, url_for, Flask
 app = Flask(__name__)
@@ -47,10 +49,10 @@ def create_node():
     except:
         return 'Error: wrong arguments', 400
 
-    Frontend.create(routing_path="/ping/{0}".format(node.id), backend_port=node.routing_port,
-        backend_path="/ping", node_id=node.id, is_private=True, check_ping=False)
-    Frontend.create(routing_path="/config/{0}".format(node.id), backend_port=node.config_port,
-        backend_path="/config", node_id=node.id, is_private=True, check_ping=False)
+    Frontend.create(name=node.name+' ping', routing_path="/ping_{0}".format(node.id), 
+        backend_port=node.routing_port, node_id=node.id, is_private=True, check_ping=False)
+    Frontend.create(name=node.name+' config', routing_path="/config_{0}".format(node.id),
+        backend_port=node.config_port, node_id=node.id, is_private=True, check_ping=False)
 
     return json.dumps({'id': node.id}), 200
 
@@ -126,8 +128,8 @@ def delete_edge():
 @app.route('/api/frontend/create', methods=['POST', 'DELETE'])
 def create_frontend():
 
-    if not check_json_template(request.json, ['routing_path', 
-        'backend_port', 'backend_path', 'node_id', 'is_private',
+    if not check_json_template(request.json, ['name', 
+        'backend_port', 'node_id', 'is_private',
         'check_ping']):
 
         return 'Error: not enough arguments', 400
@@ -135,15 +137,14 @@ def create_frontend():
     if request.json['node_id'] == 1:
         return 'Error: frontend cannot be created on root node', 400
 
+    routing_path = '/' + hashids.encode(request.json['backend_port'] * 10 + request.json['node_id'])
+
     try:
-        frontend = Frontend.create(**request.json)
+        frontend = Frontend.create(routing_path=routing_path,**request.json)
     except:
         return 'Error: wrong arguments', 400
     
     nodes_view = load_nodes_view()
-
-    print(type(request.json["node_id"]))
-    print(request.json["node_id"])
 
     host_node_view = find_by_id(nodes_view, request.json["node_id"])
     host_node_view.update_parents_routes(forced=True)
@@ -183,8 +184,14 @@ def update_node_config():
         return 'Error: node does not exist', 404
 
     ret = node_view.send_config()
-    if ret == 200:
+    if ret==200:
         return 'OK', 200
     else:
         return 'Config deploy failed', ret
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8082, debug=True)
+
+
 

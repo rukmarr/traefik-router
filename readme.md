@@ -1,10 +1,19 @@
 ### Multi-layered proxy router
 
-#### usage:  
-`sudo docker build -t router .`  
-`sudo docker network create traefik`
+#### Настройка
+* 8080 - стандартный порт прокси-сервера, меняется в traefik.toml
+* 8081 - стандартный порт приватного прокси-сервеа, меняется в traefik.toml, **должен быть закрыт снаружи**
+* 8082 - стандартный порт панели администратора, меняется в uwsgi.ini
 
-`sudo docker run -d --network traefik -v traefik_root:/etc/traefik --name traefik_router -p 8080:80 router`  
-`sudo docker run -d --network traefik -v traefik_root:/etc/traefik --name traefik_root -p 80:8080 traefik`
+#### Запуск
+`# conda env create -f env.yml -n router`
+`# activate router`
 
-Make sure that 8080 is not exposed
+`# python init_db.py 8080 8081 // порт публичного и приватного прокси-сервера`
+
+`# nohup uwsgi --ini uwsgi.ini & disown`
+`# nohup ./traefik -c traefik.conf`
+
+
+#### Панель администрации
+TODO
