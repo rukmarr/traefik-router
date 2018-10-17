@@ -75,20 +75,58 @@ function initFrontends() {
 
 
 function initNodes() {
+
+  let popup_node_id = 0;
+  let popup_form_url = '';
+  let popup = $('.new_node');
+
+  $('.nodes__create').click(ev => {
+    popup_form_url = '/api/node/create';
+    popup_node_id = 0;
+
+    popup.modal('show');
+  });
+
   $('.new_node__submit').click(ev => {
     let name = $('.new_node__name').val();
     let address = $('.new_node__address').val();
     let routing_port = $('.new_node__routing_port').val();
     let config_port = $('.new_node__config_port').val();
 
-    $.ajax('/api/node/create', {
+    let req = {name, address, routing_port, config_port};
+
+    if (popup_node_id) req.id = popup_node_id;
+
+    $.ajax(popup_form_url, {
       type: "POST",
-      data: JSON.stringify({name, address, routing_port, config_port}),
+      data: JSON.stringify(req),
       contentType: "application/json",
       success: (id) => {
         window.location.reload(true);
       }
     });
+  });
+
+
+  $('.nodes__table').on('click', '.nodes__table__change', ev => {
+    let node_row = $(ev.target).parents('tr');
+    
+    let id = node_row.data('id');
+
+    let name = node_row.children()[1].innerText;
+    let address = node_row.children()[2].innerText;
+    let routing_port = +node_row.children()[3].innerText;
+    let config_port = +node_row.children()[4].innerText;
+
+    popup_form_url = '/api/node/update';
+    popup_node_id = id;
+
+    $('.new_node__name').val(name);
+    $('.new_node__address').val(address);
+    $('.new_node__routing_port').val(routing_port);
+    $('.new_node__config_port').val(config_port);
+
+    popup.modal('show');
   });
 
 

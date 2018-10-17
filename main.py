@@ -78,6 +78,46 @@ def delete_node():
 
     return 'OK', 200
 
+@app.route('/api/node/update', methods=['POST'])
+def update_node():
+    if not check_json_template(request.json, ['id', 'name',
+        'address', 'routing_port', 'config_port']):
+        return 'Error: not enough arguments', 400
+
+    try:
+        node = Node.get_by_id(request.json['id'])
+    except peewee.DoesNotExist:
+        return 'Error: node does not exist', 404
+
+    try:
+        node.name = request.json['name']
+        node.address = request.json['address']
+        node.routing_port = request.json['routing_port']
+        node.config_port = request.json['config_port']
+
+        node.save()
+    except:
+        return 'Error: wrong arguments', 400
+
+    return 'OK', 200
+
+@app.route('/api/node/update_config', methods=['POST'])
+def update_node_config():
+    if not check_json_template(request.json, ['id',]):
+        return 'Error: not enough arguments', 400
+
+    nodes_view = load_nodes_view()
+    node_view = find_by_id(nodes_view, request.json['id'])
+
+    if not node_view:
+        return 'Error: node does not exist', 404
+
+    ret = node_view.send_config()
+    if ret==200:
+        return 'OK', 200
+    else:
+        return 'Config deploy failed', ret
+
 @app.route('/api/edge/create', methods=['POST', 'DELETE'])
 def create_edge():
 
@@ -170,24 +210,6 @@ def delete_frontend():
     host_node_view = find_by_id(nodes_view, frontend.node_id)
     host_node_view.update_parents_routes(forced=True)
     return 'OK', 200    
-
-
-@app.route('/api/node/update_config', methods=['POST'])
-def update_node_config():
-    if not check_json_template(request.json, ['id',]):
-        return 'Error: not enough arguments', 400
-
-    nodes_view = load_nodes_view()
-    node_view = find_by_id(nodes_view, request.json['id'])
-
-    if not node_view:
-        return 'Error: node does not exist', 404
-
-    ret = node_view.send_config()
-    if ret==200:
-        return 'OK', 200
-    else:
-        return 'Config deploy failed', ret
 
 
 if __name__ == '__main__':

@@ -20,7 +20,7 @@
         <div class="col-md-10 col-md-push-1">
             <div class="table_header">
                 <span>Узлы сети:</span>
-                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#node_creation_dialog">Создать</button>
+                <button type="button" class="btn btn-primary nodes__create">Создать</button>
             </div>
             <table class="table table-hover nodes__table">
                 <thead>
@@ -32,6 +32,7 @@
                         <th>Порт управления</th>
                         <th>Родители</th>
                         <th>Потомки</th>
+                        <th></th>
                         <th></th>
                         <th></th>
                     </tr>
@@ -97,6 +98,9 @@
                             </div>
                         </td>
                         <td>
+                            <button type="button" class="btn btn-xs btn-default nodes__table__change">Изменить</button>
+                        </td>
+                        <td>
                             <button type="button" class="btn btn-xs btn-default nodes__table__update">Обновить</button>
                         </td>
                         <td>
@@ -109,45 +113,6 @@
                 </tbody>
             </table>
         </div>
-
-        <div class="modal fade new_node" id="node_creation_dialog" tabindex="-1" role="dialog">
-          <div class="modal-dialog" role="document">
-            <div class="modal-content">
-              <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title">Создание узла</h4>
-              </div>
-              <div class="modal-body">
-                <form>
-                  <div class="form-group">
-                    <label for="nodeName">Name</label>
-                    <input type="text" class="form-control new_node__name" id="nodeName">
-                  </div>
-                  
-                  <div class="form-group">
-                    <label for="nodeAddress">Address</label>
-                    <input type="text" class="form-control new_node__address" id="nodeAddress">
-                  </div>
-
-                  <div class="form-group">
-                    <label for="nodeRP">Routing port</label>
-                    <input type="text" class="form-control new_node__routing_port" id="nodeRP">
-                  </div>
-
-                  <div class="form-group">
-                    <label for="nodeCP">Configuration port</label>
-                    <input type="text" class="form-control new_node__config_port" id="nodeCP">
-                  </div>
-                </form>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
-                <button type="button" class="btn btn-primary new_node__submit">Отправить</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
     </div>
 
     <div class="row frontends">
@@ -201,58 +166,96 @@
                 </tbody>
             </table>
         </div>
+    </div>
 
-        <div class="modal fade new_frontend" id="frontend_creation_dialog" tabindex="-1" role="dialog">
-          <div class="modal-dialog" role="document">
-            <div class="modal-content">
-              <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title">Создание фронтенда</h4>
+    <div class="modal fade new_node" id="node_creation_dialog" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Создание узла</h4>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="form-group">
+                <label for="nodeName">Name</label>
+                <input type="text" class="form-control new_node__name" id="nodeName">
               </div>
-              <div class="modal-body">
-                <form>
-                  <div class="form-group">
-                    <label for="fndName">Name</label>
-                    <input type="text" class="form-control new_frontend__name" id="fndName">
-                  </div>
-
-                  <div class="form-group">
-                    <label for="fndNode">Node</label>
-                    <select id="fndNode" class="form-control new_frontend__node">
-                      {% for node in nodes %}
-                      {% if not node.id == 1 %}
-                        <option value="{{ node.id }}">{{ node.id }} ({{ node.name }})</option>
-                      {% endif %}
-                      {% endfor %}
-                    </select>
-                  </div>
-                  
-                  <div class="form-group">
-                    <label for="fndBPort">Backend port</label>
-                    <input type="text" class="form-control new_frontend__backend_port" id="fndBPort">
-                  </div>
-
-                  <div class="checkbox">
-                    <label>
-                      <input class="new_frontend__check_ping" type="checkbox" checked> Check ping
-                    </label>
-                  </div>
-
-                  <div class="checkbox">
-                    <label>
-                      <input class="new_frontend__is_private" type="checkbox"> Private
-                    </label>
-                  </div>
-                </form>
+              
+              <div class="form-group">
+                <label for="nodeAddress">Address</label>
+                <input type="text" class="form-control new_node__address" id="nodeAddress">
               </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
-                <button type="button" class="btn btn-primary new_frontend__submit">Отправить</button>
+
+              <div class="form-group">
+                <label for="nodeRP">Routing port</label>
+                <input type="text" class="form-control new_node__routing_port" id="nodeRP">
               </div>
-            </div>
+
+              <div class="form-group">
+                <label for="nodeCP">Configuration port</label>
+                <input type="text" class="form-control new_node__config_port" id="nodeCP">
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+            <button type="button" class="btn btn-primary new_node__submit">Отправить</button>
           </div>
         </div>
-
+      </div>
     </div>
+
+    <div class="modal fade new_frontend" id="frontend_creation_dialog" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Создание фронтенда</h4>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="form-group">
+                <label for="fndName">Name</label>
+                <input type="text" class="form-control new_frontend__name" id="fndName">
+              </div>
+
+              <div class="form-group">
+                <label for="fndNode">Node</label>
+                <select id="fndNode" class="form-control new_frontend__node">
+                  {% for node in nodes %}
+                  {% if not node.id == 1 %}
+                    <option value="{{ node.id }}">{{ node.id }} ({{ node.name }})</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="fndBPort">Backend port</label>
+                <input type="text" class="form-control new_frontend__backend_port" id="fndBPort">
+              </div>
+
+              <div class="checkbox">
+                <label>
+                  <input class="new_frontend__check_ping" type="checkbox" checked> Check ping
+                </label>
+              </div>
+
+              <div class="checkbox">
+                <label>
+                  <input class="new_frontend__is_private" type="checkbox"> Private
+                </label>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+            <button type="button" class="btn btn-primary new_frontend__submit">Отправить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
 </body>
 </html>

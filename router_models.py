@@ -1,4 +1,6 @@
 from peewee import *
+import sys
+import os
 
 db = SqliteDatabase('router.sqlite', pragmas={'foreign_keys': 1})
 
@@ -33,8 +35,25 @@ class Edge(BaseModel):
 
 if __name__ == "__main__":
 
+    try: 
+        address = sys.argv[1]
+        entrance_port = int(sys.argv[2])
+        private_port = int(sys.argv[3])
+    except IndexError:
+        print("Usage: python init_db.py [ address ] [ listening port ] [ configuration port ]")
+        exit()
+    except ValueError:
+        print("Error: invalid arguments")
+        exit()
+
     db.connect()
+    try:
+        db.drop_tables([Node, Edge, Frontend])
+    except: 
+        pass
     db.create_tables([Node, Edge, Frontend])
+
+
+    Node.create(name='root', address=address, routing_port=entrance_port, config_port=private_port)
+
     db.close()
-
-

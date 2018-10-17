@@ -4,6 +4,7 @@ import json
 import requests
 
 root_config_port = 8080
+root_address = ''
 
 def find_in_seq(seq, predicate, default=None):
     return next(filter(predicate, seq), default)
@@ -186,15 +187,6 @@ class NodeView():
             else:
                 frontend['routes'] = {'match': {'rule': 'PathPrefixStrip:' + routing_path}}
 
-            if not route['is_private']:
-                cookie_frontend = {
-                    'entryPoints': ['http'],
-                    'backend': 'backend{0}'.format(i),
-                    'priority': 10,
-                    'routes' : {'match': {'rule': 'HeadersRegexp: Cookie, routing='+routing_path}},
-                }
-                frontends['cookie{0}'.format(i)] = cookie_frontend
-
             frontends['frontend{0}'.format(i)] = frontend
 
         toml_str = tomlkit.dumps({'backends': backends, 'frontends': frontends})
@@ -259,14 +251,18 @@ class NodeView():
             if not route['is_private']:
                 main_frontend['entryPoints']  =  ['http',]
                 main_frontend['headers'] = {'customresponseheaders': {
-                    'Set-Cookie': 'routing={0}; domain=195.19.254.134; path=/'.format(routing_path)}
-                }
+                    'Set-Cookie': 'routing={0}; domain={1}; path=/'.format(routing_path, root_address)
+                }}
 
                 cookie_frontend = {
                     'entryPoints': ['http',],
                     'backend': 'backend{0}'.format(i),
                     'priority': 10,
                     'routes' : {'match': {'rule': 'HeadersRegexp: Cookie, routing='+routing_path}},
+                    'redirect': {  # undocumented feature, works just like entrypoint url-rewrite
+                        'regex': "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?", # based on https://tools.ietf.org/html/rfc3986#appendix-B
+                        'replacement': "$1$3" + routing_path + "$5$6"
+                    }
                 }
 
                 redirect_frontend = {
@@ -325,7 +321,9 @@ def load_nodes_view(routes=True):
 
             if node.id == 1:
                 global root_config_port
+                global root_address
                 root_config_port = node.config_port
+                root_address = node.address
 
             for parent in node.parents:
                 # check if current node is the last child in the queue
