@@ -178,22 +178,22 @@
           <div class="modal-body">
             <form>
               <div class="form-group">
-                <label for="nodeName">Name</label>
+                <label for="nodeName">Имя</label>
                 <input type="text" class="form-control new_node__name" id="nodeName">
               </div>
               
               <div class="form-group">
-                <label for="nodeAddress">Address</label>
+                <label for="nodeAddress">Адрес</label>
                 <input type="text" class="form-control new_node__address" id="nodeAddress">
               </div>
 
               <div class="form-group">
-                <label for="nodeRP">Routing port</label>
+                <label for="nodeRP">Порт прокси</label>
                 <input type="text" class="form-control new_node__routing_port" id="nodeRP">
               </div>
 
               <div class="form-group">
-                <label for="nodeCP">Configuration port</label>
+                <label for="nodeCP">Порт управления</label>
                 <input type="text" class="form-control new_node__config_port" id="nodeCP">
               </div>
             </form>
@@ -216,12 +216,12 @@
           <div class="modal-body">
             <form>
               <div class="form-group">
-                <label for="fndName">Name</label>
+                <label for="fndName">Имя</label>
                 <input type="text" class="form-control new_frontend__name" id="fndName">
               </div>
 
               <div class="form-group">
-                <label for="fndNode">Node</label>
+                <label for="fndNode">Узел</label>
                 <select id="fndNode" class="form-control new_frontend__node">
                   {% for node in nodes %}
                   {% if not node.id == 1 %}
@@ -232,19 +232,19 @@
               </div>
               
               <div class="form-group">
-                <label for="fndBPort">Backend port</label>
+                <label for="fndBPort">Порт</label>
                 <input type="text" class="form-control new_frontend__backend_port" id="fndBPort">
               </div>
 
               <div class="checkbox">
                 <label>
-                  <input class="new_frontend__check_ping" type="checkbox" checked> Check ping
+                  <input class="new_frontend__check_ping" type="checkbox" checked> Проверка пинга узла
                 </label>
               </div>
 
               <div class="checkbox">
                 <label>
-                  <input class="new_frontend__is_private" type="checkbox"> Private
+                  <input class="new_frontend__is_private" type="checkbox"> Приватный
                 </label>
               </div>
             </form>
